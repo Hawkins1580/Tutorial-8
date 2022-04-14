@@ -2,7 +2,7 @@
 # Start of Tutorial #8
 
 # Installing Packages
-install.packages(c("caret", "randomForest", "rgdal", "sf", "raster"))
+# install.packages(c("caret", "randomForest", "rgdal", "sf", "raster"))
 
 library(caret)
 library(randomForest)
@@ -15,20 +15,29 @@ oct <- stack("/cloud/project/activity08/Oct_12.tif")
 
 plot(oct)
 
+
 plotRGB(oct, r=3,g=2,b=1, scale=0.7, stretch="lin")
+
 
 drStack <- stack("/cloud/project/activity08/May_19.tif",
                  "/cloud/project/activity08/June_10.tif",
                  "/cloud/project/activity08/June_18.tif",
                  "/cloud/project/activity08/Oct_12.tif")
 
+
 plot(drStack)
+
+plotRGB(drStack, r=3, g=2, b=1, scale=1, stretch="lin")
 
 plot(drStack[[16:20]])
 
-lc <- st_read("/cloud/project/activity08/land_pts.shp")
 
+lc <- st_read("/cloud/project/activity08/land_pts.shp")
 head(lc)
+
+plot(lc["landcover"],add=TRUE, pch=19, cex=0.5,
+     pal = hcl.colors(3, palette = "harmonic"))
+
 
 # plot the main reforestation field and surrounding areas:
 plotRGB(oct, r=3,g=2,b=1, scale=0.7, stretch="lin")
@@ -43,10 +52,13 @@ legend("topleft",
        col=hcl.colors(3, palette = "Harmonic"), # color palette
        bty="n")
 
+
 drStack@ncols*drStack@nrows
+
 
 # subset to only focus on training pts (60 in each class)
 trainPts <- subset(lc, lc$train=="train", drop=FALSE)
+
 
 # extract pixel data
 train <- extract(drStack, trainPts)
@@ -55,6 +67,7 @@ trainTable <- st_drop_geometry(trainPts)
 # combine into one table that has a y column
 # for land cover and all other data are predictions
 trainDF <- na.omit(cbind(y=as.factor(trainTable[,3]), train))
+
 
 #Kfold cross validation
 tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the training data
@@ -65,9 +78,11 @@ tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the tra
 nbands <- 20 #20 bands of information
 rf.grid <- expand.grid(mtry=1:round(sqrt(nbands))) # number of variables available for splitting at each tree node
 
+
 # set random seed for algorithm so you can get the same results when
 # running multiple times
 set.seed(43)
+
 
 #note that caret:: will make sure we use train from the caret package
 rf_model <- caret::train(x = trainDF[,2:21], #digital number data
@@ -79,10 +94,12 @@ rf_model <- caret::train(x = trainDF[,2:21], #digital number data
 
 rf_model
 
+
 #use the model to predict land cover class for the entire raster stack
 rf_prediction <- raster::predict(drStack, rf_model )
 # plot the land cover class (uses LCID number)
 plot(rf_prediction, col= hcl.colors(3, palette = "Harmonic"))
+
 
 # subset land cover points for validation
 validPts <- subset(lc, lc$train=="valid", drop=FALSE)
