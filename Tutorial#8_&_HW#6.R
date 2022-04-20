@@ -2,7 +2,7 @@
 # Start of Tutorial #8 & HW #6
 
 # Installing Packages
-install.packages(c("caret", "randomForest", "rgdal", "sf", "raster"))
+# install.packages(c("caret", "randomForest", "rgdal", "sf", "raster"))
 
 library(caret)
 library(randomForest)
@@ -10,7 +10,9 @@ library(rgdal)
 library(sf)
 library(raster)
 
-
+may <- stack("/cloud/project/activity08/May_19.tif")
+june1 <- stack("/cloud/project/activity08/June_10.tif")
+june2 <- stack("/cloud/project/activity08/June_18.tif")
 oct <- stack("/cloud/project/activity08/Oct_12.tif")
 
 plot(oct)
@@ -112,12 +114,10 @@ validPts <- subset(lc, lc$train=="valid", drop=FALSE)
 valid_Table <- st_drop_geometry(validPts)
 
 
-
 # extract predicted land cover for each point
 valid_rf <- extract(rf_prediction, validPts)
 # turn into table
 validDF_rf <- data.frame(y=valid_Table[,3], rf=valid_rf)
-
 
 
 # Generating a Confusion Matrix
@@ -155,6 +155,18 @@ nn_prediction <- raster::predict(drStack, nnet_model)
 plot(nn_prediction, col= hcl.colors(3, palette = "Harmonic"))
 
 
+# Generating a Confusion Matrix
+# LCID 1 = field
+# LCID 2 =  tree
+# LCID 3 = path
+# confusion Matrix, first argument is prediction second is data
+nn_errorM = confusionMatrix(as.factor(validDF_nn$nn),as.factor(validDF_nn$y))
+# make LCID easier to interpret
+colnames(rf_errorM$table) <- c("field","tree","path")
+rownames(rf_errorM$table) <- c("field","tree","path")
+rf_errorM
+
+
 
 
 # Make Plots Side by Side
@@ -171,19 +183,28 @@ legend("bottomleft", c("field","tree","path"),
 
 
 
-# Analyzing Predictions
 
-#cell count neural net
-freq(nn_prediction)
+# Question #2 - Calculating NDVI
 
-#cell count random forest
-freq(rf_prediction)
+# May NDVI
+ndvi_may <- (may[[4]]-may[[3]])/(may[[4]]+may[[3]])
+par(mfrow=c(1,2))
+plot(ndvi_may)
 
-# field RF area calculation
-0.4*0.4*71019
+# June1 NDVI
+ndvi_june1 <- (june1[[4]]-june1[[3]])/(june1[[4]]+june1[[3]])
+par(mfrow=c(1,2))
+plot(ndvi_june1)
 
-# field NN area calculation
-0.4*0.4*71047
+# June2 NDVI
+ndvi_june2 <- (june2[[4]]-june2[[3]])/(june2[[4]]+june2[[3]])
+par(mfrow=c(1,2))
+plot(ndvi_june2)
+
+# Oct NDVI
+ndvi_oct <- (oct[[4]]-oct[[3]])/(oct[[4]]+oct[[3]])
+par(mfrow=c(1,2))
+plot(ndvi_oct)
 
 
 
