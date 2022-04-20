@@ -1,8 +1,8 @@
 
-# Start of Tutorial #8
+# Start of Tutorial #8 & HW #6
 
 # Installing Packages
-# install.packages(c("caret", "randomForest", "rgdal", "sf", "raster"))
+install.packages(c("caret", "randomForest", "rgdal", "sf", "raster"))
 
 library(caret)
 library(randomForest)
@@ -69,7 +69,12 @@ trainTable <- st_drop_geometry(trainPts)
 trainDF <- na.omit(cbind(y=as.factor(trainTable[,3]), train))
 
 
-#Kfold cross validation
+
+
+# Question #1
+
+# Random Forest
+# Performing the Kfold cross validation
 tc <- trainControl(method = "repeatedcv", # repeated cross-validation of the training data
                    number = 10, # number 10 fold
                    repeats = 10) # number of repeats
@@ -115,7 +120,7 @@ validDF_rf <- data.frame(y=valid_Table[,3], rf=valid_rf)
 
 
 
-# make a confusion matrix
+# Generating a Confusion Matrix
 # LCID 1 = field
 # LCID 2 =  tree
 # LCID 3 = path
@@ -127,6 +132,9 @@ rownames(rf_errorM$table) <- c("field","tree","path")
 rf_errorM
 
 
+
+
+# Neural Net
 # starting parameters for neural net
 nnet.grid <- expand.grid(size = seq(from = 1, to = 10, by = 1), # number of neurons units in the hidden layer 
                          decay = seq(from = 0.001, to = 0.01, by = 0.001)) # regularization parameter to avoid over-fitting
@@ -147,22 +155,9 @@ nn_prediction <- raster::predict(drStack, nnet_model)
 plot(nn_prediction, col= hcl.colors(3, palette = "Harmonic"))
 
 
-#cell count neural net
-freq(nn_prediction)
 
 
-#cell count random forest
-freq(rf_prediction)
-
-
-# field RF area calculation
-0.4*0.4*71019
-
-
-# field NN area calculation
-0.4*0.4*71047
-
-
+# Make Plots Side by Side
 par(mfrow=c(1,2))
 plot(nn_prediction, col= hcl.colors(3, palette = "Harmonic"),
      legend=FALSE, axes=FALSE, main="Neural network", box=FALSE)
@@ -173,3 +168,29 @@ plot(rf_prediction, col= hcl.colors(3, palette = "Harmonic"),
      legend=FALSE, axes=FALSE, main="Random forest", box=FALSE)
 legend("bottomleft", c("field","tree","path"),
        fill=hcl.colors(3, palette = "Harmonic") ,bty="n")
+
+
+
+# Analyzing Predictions
+
+#cell count neural net
+freq(nn_prediction)
+
+#cell count random forest
+freq(rf_prediction)
+
+# field RF area calculation
+0.4*0.4*71019
+
+# field NN area calculation
+0.4*0.4*71047
+
+
+
+
+
+
+
+
+
+
