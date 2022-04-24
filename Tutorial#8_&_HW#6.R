@@ -154,19 +154,22 @@ nn_prediction <- raster::predict(drStack, nnet_model)
 # map
 plot(nn_prediction, col= hcl.colors(3, palette = "Harmonic"))
 
+# extract predicted land cover for each point
+valid_nn <- extract(nn_prediction, validPts)
+# turn into table
+validDF_nn <- data.frame(y=valid_Table[,3], nn=valid_nn)
 
-# Generating a Confusion Matrix
+
+# Generating a confusion matrix
 # LCID 1 = field
 # LCID 2 =  tree
 # LCID 3 = path
 # confusion Matrix, first argument is prediction second is data
 nn_errorM = confusionMatrix(as.factor(validDF_nn$nn),as.factor(validDF_nn$y))
 # make LCID easier to interpret
-colnames(rf_errorM$table) <- c("field","tree","path")
-rownames(rf_errorM$table) <- c("field","tree","path")
-rf_errorM
-
-
+colnames(nn_errorM$table) <- c("field","tree","path")
+rownames(nn_errorM$table) <- c("field","tree","path")
+nn_errorM
 
 
 # Make Plots Side by Side
@@ -210,6 +213,44 @@ plot(ndvi_oct)
 
 
 
+# Question #3
+
+# Neural Net with larger parameter ranges
+# starting parameters for neural net
+nnet.gridQ3 <- expand.grid(size = seq(from = 1, to = 20, by = 2), # number of neurons units in the hidden layer 
+                         decay = seq(from = 0.001, to = 0.02, by = 0.002)) # regularization parameter to avoid over-fitting
+
+
+# train nnet
+set.seed(18)
+nnet_modelQ3 <- caret::train(x = trainDF[,c(2:21)], y = as.factor(trainDF[,1]),
+                           method = "nnet", metric="Accuracy", 
+                           trainControl = tc, tuneGrid = nnet.gridQ3,
+                           trace=FALSE)
+nnet_modelQ3
+
+
+# predictions
+nn_predictionQ3 <- raster::predict(drStack, nnet_modelQ3)
+# map
+plot(nn_predictionQ3, col= hcl.colors(3, palette = "Harmonic"))
+
+# extract predicted land cover for each point
+valid_nnQ3 <- extract(nn_predictionQ3, validPts)
+# turn into table
+validDF_nnQ3 <- data.frame(y=valid_Table[,3], nn=valid_nnQ3)
+
+
+# Generating a confusion matrix
+# LCID 1 = field
+# LCID 2 =  tree
+# LCID 3 = path
+# confusion Matrix, first argument is prediction second is data
+nn_errorMQ3 = confusionMatrix(as.factor(validDF_nnQ3$nn),as.factor(validDF_nnQ3$y))
+# make LCID easier to interpret
+colnames(nn_errorMQ3$table) <- c("field","tree","path")
+rownames(nn_errorMQ3$table) <- c("field","tree","path")
+nn_errorMQ3
 
 
 
